@@ -1,6 +1,7 @@
 import math
 import cv2
 import mediapipe as mp
+from calibration import Calibration
 import face_landmarks as fl #for easier view of the ID
 from face_state import get_face_state #to process the state of the face
 from face_animator import FaceAnimator, ExpressionSmoother
@@ -10,6 +11,8 @@ from show_avatar import show_avatar
 
 mp_face = mp.solutions.face_mesh
 mp_draw = mp.solutions.drawing_utils
+
+calib = Calibration()
 
 cap = cv2.VideoCapture(0)
 
@@ -39,16 +42,18 @@ with mp_face.FaceMesh(
             for lm in result.multi_face_landmarks: #for multiple faces
                 
                 #draw all landmarks
-                '''
+                
                 mp_draw.draw_landmarks(
                     frame,
                     lm,
                     mp_face.FACEMESH_TESSELATION
                 )
-                '''
+                
                 lm_list = lm.landmark
-
-                rawFaceState = get_face_state(lm_list, fl)
+                calib.add_sample(lm_list, fl)
+                if not calib.ready:
+                    continue
+                rawFaceState = get_face_state(lm_list, fl, calib.baseline)
                 stableFaceState = smoother.smooth(rawFaceState)
 
                 current_image_path = animator.select_image(stableFaceState)

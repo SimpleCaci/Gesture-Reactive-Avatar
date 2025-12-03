@@ -1,96 +1,64 @@
-def get_face_state(lm_list, FL):
-    # --------------------------------------
-    # MOUTH OPEN
-    # --------------------------------------
-    upper_lip = lm_list[FL.UpperInnerLipLandmarkId].y
-    lower_lip = lm_list[FL.LowerInnerLipLandmarkId].y
-    mouth_open_value = abs(lower_lip - upper_lip)
-    isMouthOpen = mouth_open_value > 0.03
+def get_face_state(lm_list, FL, base):
 
-    # --------------------------------------
-    # SMILE
-    # --------------------------------------
+    # ----- MOUTH OPEN -----
+    mouth_open = abs(
+        lm_list[FL.UpperInnerLipLandmarkId].y -
+        lm_list[FL.LowerInnerLipLandmarkId].y
+    )
+    isMouthOpen = mouth_open > base["mouth_open"] * 1.8
+
+    # ----- SMILE -----
     mouth_width = abs(
         lm_list[FL.MouthRightCornerLandmarkId].x -
         lm_list[FL.MouthLeftCornerLandmarkId].x
     )
-    isSmiling = mouth_width > 0.22
+    isSmiling = mouth_width > base["mouth_width"] * 1.25
 
-    # --------------------------------------
-    # O-MOUTH
-    # --------------------------------------
-    isOMouth = (mouth_open_value > 0.04) and (mouth_width < 0.18)
+    # ----- O-MOUTH (small width + open) -----
+    isOMouth = (mouth_open > base["mouth_open"] * 2.0) and \
+               (mouth_width < base["mouth_width"] * 0.95)
 
-    # --------------------------------------
-    # FROWN
-    # --------------------------------------
-    left_corner_y = lm_list[FL.MouthLeftCornerLandmarkId].y
-    right_corner_y = lm_list[FL.MouthRightCornerLandmarkId].y
-    upper_lip_y = lm_list[FL.UpperLipLandmarkId].y
-
-    isFrowning = (left_corner_y < upper_lip_y - 0.01) and \
-                 (right_corner_y < upper_lip_y - 0.01)
-
-    # --------------------------------------
-    # BLINKS
-    # --------------------------------------
-    left_eye_open = abs(
+    # ----- BLINKS -----
+    left_eye = abs(
         lm_list[FL.LeftEyeUpperLidLandmarkId].y -
         lm_list[FL.LeftEyeLowerLidLandmarkId].y
     )
-    right_eye_open = abs(
+    right_eye = abs(
         lm_list[FL.RightEyeUpperLidLandmarkId].y -
         lm_list[FL.RightEyeLowerLidLandmarkId].y
     )
 
-    isLeftBlink = left_eye_open < 0.011
-    isRightBlink = right_eye_open < 0.011
+    isLeftBlink = left_eye < base["left_eye"] * 0.45
+    isRightBlink = right_eye < base["right_eye"] * 0.45
     isBlink = isLeftBlink and isRightBlink
     isLeftWink = isLeftBlink and not isRightBlink
     isRightWink = isRightBlink and not isLeftBlink
 
-    # --------------------------------------
-    # EYEBROWS
-    # --------------------------------------
-    left_brow = lm_list[FL.LeftEyebrowInnerLandmarkId].y
-    left_eye_top = lm_list[FL.LeftEyeUpperLidLandmarkId].y
-    right_brow = lm_list[FL.RightEyebrowInnerLandmarkId].y
-    right_eye_top = lm_list[FL.RightEyeUpperLidLandmarkId].y
+    # ----- EYEBROWS -----
+    left_brow_dist = (lm_list[FL.LeftEyebrowInnerLandmarkId].y -
+                      lm_list[FL.LeftEyeUpperLidLandmarkId].y)
+    right_brow_dist = (lm_list[FL.RightEyebrowInnerLandmarkId].y -
+                       lm_list[FL.RightEyeUpperLidLandmarkId].y)
 
-    isLeftEyebrowRaised = (left_brow - left_eye_top) < -0.03
-    isRightEyebrowRaised = (right_brow - right_eye_top) < -0.03
-    isEyebrowRaised = isLeftEyebrowRaised and isRightEyebrowRaised
+    isEyebrowRaised = (left_brow_dist < base["left_brow_dist"] * 0.85) and \
+                      (right_brow_dist < base["right_brow_dist"] * 0.85)
 
-    isEyebrowLowered = (left_brow - left_eye_top) > -0.015 and \
-                       (right_brow - right_eye_top) > -0.015
+    isEyebrowLowered = (left_brow_dist > base["left_brow_dist"] * 1.15) and \
+                       (right_brow_dist > base["right_brow_dist"] * 1.15)
 
-    # --------------------------------------
-    # SURPRISED
-    # --------------------------------------
-    isSurprised = (left_eye_open > 0.018 and right_eye_open > 0.018) and isMouthOpen
+    # ----- FROWN -------
+    upper_lip = lm_list[FL.UpperLipLandmarkId].y
+    left_corner = lm_list[FL.MouthLeftCornerLandmarkId].y
+    right_corner = lm_list[FL.MouthRightCornerLandmarkId].y
+    isFrowning = (left_corner < upper_lip - 0.008) and \
+                 (right_corner < upper_lip - 0.008)
 
-    # --------------------------------------
-    # HEAD TILT
-    # --------------------------------------
-    left_cheek = lm_list[FL.LeftCheekLandmarkId].y
-    right_cheek = lm_list[FL.RightCheekLandmarkId].y
-    tilt_value = right_cheek - left_cheek
+    # ----- SURPRISED -----
+    isSurprised = (left_eye > base["left_eye"] * 1.25 and
+                   right_eye > base["right_eye"] * 1.25) and isMouthOpen
 
-    isHeadTiltRight = tilt_value > 0.02
-    isHeadTiltLeft  = tilt_value < -0.02
+    # (tilt & turn unchanged)
 
-    # --------------------------------------
-    # HEAD TURN
-    # --------------------------------------
-    left_face_side = lm_list[FL.LeftFaceSideLandmarkId].x
-    right_face_side = lm_list[FL.RightFaceSideLandmarkId].x
-
-    isHeadTurnRight = right_face_side < 0.35
-    isHeadTurnLeft  = left_face_side > 0.65
-
-    # --------------------------------------
-    # RETURN A SINGLE STATE OBJECT
-    # --------------------------------------
     return {
         "mouth_open": isMouthOpen,
         "smile": isSmiling,
@@ -105,11 +73,6 @@ def get_face_state(lm_list, FL):
 
         "eyebrow_raised": isEyebrowRaised,
         "eyebrow_lowered": isEyebrowLowered,
-
-        "head_tilt_left": isHeadTiltLeft,
-        "head_tilt_right": isHeadTiltRight,
-        "head_turn_left": isHeadTurnLeft,
-        "head_turn_right": isHeadTurnRight,
 
         "surprised": isSurprised
     }
