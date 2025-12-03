@@ -1,15 +1,24 @@
+import math
 import cv2
 import mediapipe as mp
-import face_landmarks #for easier view of the ID
+import face_landmarks as fl #for easier view of the ID
+from face_state import get_face_state #to process the state of the face
+from face_animator import FaceAnimator, ExpressionSmoother
+from face_state_to_image import ExpressionRules
+from face_box import get_face_box
+from show_avatar import show_avatar
 
 mp_face = mp.solutions.face_mesh
 mp_draw = mp.solutions.drawing_utils
 
 cap = cv2.VideoCapture(0)
 
-#FaceMesh Landmark IDing
-UpperLipLandmarkId = 13
+animator = FaceAnimator(
+    image_folder="images",
+    rules=ExpressionRules
+)
 
+smoother = ExpressionSmoother(hold_time=0.06)
 
 with mp_face.FaceMesh(
     max_num_faces=1,
@@ -27,7 +36,7 @@ with mp_face.FaceMesh(
         result = face.process(rgb)
 
         if result.multi_face_landmarks:
-            for lm in result.multi_face_landmarks:
+            for lm in result.multi_face_landmarks: #for multiple faces
                 
                 #draw all landmarks
                 '''
@@ -37,11 +46,23 @@ with mp_face.FaceMesh(
                     mp_face.FACEMESH_TESSELATION
                 )
                 '''
-                for group in [face_landmarks.LeftEyeLandmarks, face_landmarks.RightEyeLandmarks]:
+                lm_list = lm.landmark
+
+                rawFaceState = get_face_state(lm_list, fl)
+                stableFaceState = smoother.smooth(rawFaceState)
+
+                current_image_path = animator.select_image(stableFaceState)
+
+                avatar_img = show_avatar(current_image_path)
+                if avatar_img is not None:
+                    cv2.imshow("Avatar", avatar_img)
+
+                for group in [fl.LeftEyeLandmarks, fl.RightEyeLandmarks, [fl.MouthUpperInnerLandmarkId, fl.MouthLowerInnerLandmarkId]]:
                     for index in group:
-                        x = int(lm.landmark[index].x * frame.shape[1])
-                        y = int(lm.landmark[index].y * frame.shape[0])
+                        x = int(lm_list[index].x * frame.shape[1])
+                        y = int(lm_list[index].y * frame.shape[0])
                         cv2.circle(frame, (x, y), 2, (0, 255, 0), -1)
+                
 
         cv2.imshow("FaceMesh", frame)
         if cv2.waitKey(1) & 0xFF == 27:
