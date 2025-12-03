@@ -1,36 +1,20 @@
-#main.py
 import cv2
 import mediapipe as mp
 
-mp_draw = mp.solutions.drawing_utils
-mp_face = mp.solutions.face_mesh
+mp_selfie = mp.solutions.selfie_segmentation
 
 cap = cv2.VideoCapture(0)
 
-with mp_face.FaceMesh(
-    max_num_faces=1,
-    refine_landmarks=True,
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5
-) as face_mesh:
-
+with mp_selfie.SelfieSegmentation(model_selection=1) as selfie_seg:
     while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-
+        _, frame = cap.read()
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        result = face_mesh.process(rgb)
+        result = selfie_seg.process(rgb)
+        
+        mask = result.segmentation_mask > 0.5  # person vs background
+        frame[~mask] = (0, 255, 0)  # make background green
 
-        if result.multi_face_landmarks:
-            for face_landmarks in result.multi_face_landmarks:
-                mp_draw.draw_landmarks(
-                    frame,
-                    face_landmarks,
-                    mp_face.FACEMESH_TESSELATION
-                )
-
-        cv2.imshow("Face Tracking", frame)
+        cv2.imshow("Segmentation", frame)
         if cv2.waitKey(1) & 0xFF == 27:
             break
 
