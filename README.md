@@ -10,11 +10,13 @@ The project uses a webcam and MediaPipe Face Mesh to classify expressions, smoot
 
 - captures a local webcam feed with OpenCV
 - tracks one face with refined MediaPipe landmarks
-- calibrates expression measurements to the current user
+- calibrates expression measurements to the current user with visible progress
+- supports one-key recalibration when lighting or position changes
 - recognizes eye, eyebrow, and mouth state combinations
 - smooths rapid expression changes to reduce avatar flicker
 - maps expression rules to a library of reaction images
 - displays the landmark view and avatar in separate windows
+- can hide the camera preview for a clean avatar-only capture window
 
 ## Technology
 
@@ -66,7 +68,15 @@ A working webcam is required.
 python main.py
 ```
 
-Look toward the camera while calibration collects its baseline. Press **Escape** to close the application.
+Look toward the camera with a neutral expression while the on-screen calibration bar fills.
+
+| Key | Action |
+|---|---|
+| **R** | Restart personal calibration |
+| **V** | Toggle the camera/control preview for clean avatar capture |
+| **Escape** | Close the application |
+
+The avatar window intentionally stays free of debug overlays so it can be captured separately in OBS or recording software.
 
 ## Demo
 
@@ -74,12 +84,11 @@ The current reaction-image set is under `images/`. A privacy-safe screen recordi
 
 ## Validation status
 
-No automated tests or CI workflow currently exist. Before calling this production-ready, verify camera failure handling, calibration completion, expression transitions, Escape shutdown, and behavior when no face is visible.
+Deterministic unit tests cover calibration progress/reset and initial expression smoothing. Camera-dependent behavior still requires a webcam: verify calibration completion, expression transitions, the clean capture toggle, Escape shutdown, and behavior when no face is visible.
 
 ## Known limitations
 
 - thresholds are rule-based rather than learned from a diverse dataset
-- calibration feedback is not yet visible to the user
 - camera selection is fixed to device 0
 - the raw landmark window is intended for debugging
 - reaction images have inconsistent source styles and dimensions
@@ -87,11 +96,11 @@ No automated tests or CI workflow currently exist. Before calling this productio
 
 ## High-value next steps
 
-- add visible calibration progress and retry controls
 - normalize avatar assets into one coherent visual set
+- add camera selection and saved calibration profiles
 - separate camera/landmark logic from UI for unit testing
-- add a transparent-background avatar window for streaming
-- create a small expression-debug overlay and recorded demo
+- explore a true transparent-background window with purpose-built PNG assets
+- record a privacy-safe calibration and expression demo
 
 ## License and authorship
 
