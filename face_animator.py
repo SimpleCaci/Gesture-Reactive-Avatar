@@ -1,25 +1,29 @@
 import os
 import time
 
+
 class ExpressionSmoother:
     def __init__(self, hold_time=0.08):
         self.hold_time = hold_time
+        self.reset()
+
+    def reset(self):
         self.last_state = None
-        self.last_time = time.time()
+        self.pending_state = None
+        self.pending_since = time.time()
 
     def smooth(self, current_state):
-        now = time.time()
+        if self.last_state is None:
+            self.last_state = current_state
+            return current_state
 
-        if current_state != self.last_state:
-            # state changed — only commit if stable long enough
-            if now - self.last_time > self.hold_time:
-                self.last_state = current_state
-            else:
-                # ignore flicker, return old state
-                return self.last_state
-        else:
-            # stable state
-            self.last_time = now
+        now = time.time()
+        if current_state != self.pending_state:
+            self.pending_state = current_state
+            self.pending_since = now
+
+        if current_state != self.last_state and now - self.pending_since >= self.hold_time:
+            self.last_state = current_state
 
         return self.last_state
 
@@ -30,19 +34,16 @@ class FaceAnimator:
         self.rules = rules
 
     def matches(self, state, rule):
+        state = state or {}
 
-        # ALL conditions must be True
         for key in rule.get("all", []):
             if not state.get(key, False):
                 return False
 
-        # ANY conditions (if present, at least one must be True)
         any_list = rule.get("any", [])
-        if any_list:
-            if not any(state.get(k, False) for k in any_list):
-                return False
+        if any_list and not any(state.get(key, False) for key in any_list):
+            return False
 
-        # NONE conditions must be False
         for key in rule.get("none", []):
             if state.get(key, False):
                 return False
