@@ -82,6 +82,10 @@ The avatar window intentionally stays free of debug overlays so it can be captur
 
 The current reaction-image set is under `images/`. A privacy-safe screen recording showing calibration and several expression transitions is still needed.
 
+<img src="docs/media/project-visual.png" width="320" alt="Illustrative face-landmark pipeline controlling a cat avatar">
+
+*Illustrative project visual—not a runtime screenshot.*
+
 ## Validation status
 
 Deterministic unit tests cover calibration progress/reset and initial expression smoothing:
