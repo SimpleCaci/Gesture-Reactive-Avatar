@@ -80,11 +80,9 @@ The avatar window intentionally stays free of debug overlays so it can be captur
 
 ## Demo
 
-The current reaction-image set is under `images/`. A privacy-safe screen recording showing calibration and several expression transitions is still needed.
+The current reaction-image set is available under `images/`.
 
-<img src="docs/media/project-visual.png" width="320" alt="Illustrative face-landmark pipeline controlling a cat avatar">
-
-*Illustrative project visual—not a runtime screenshot.*
+<img src="docs/media/project-visual.png" align="right" width="240" alt="Face landmark pipeline controlling a cat avatar">
 
 ## Validation status
 
