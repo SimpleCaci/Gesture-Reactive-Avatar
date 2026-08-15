@@ -84,7 +84,13 @@ The current reaction-image set is under `images/`. A privacy-safe screen recordi
 
 ## Validation status
 
-Deterministic unit tests cover calibration progress/reset and initial expression smoothing. Camera-dependent behavior still requires a webcam: verify calibration completion, expression transitions, the clean capture toggle, Escape shutdown, and behavior when no face is visible.
+Deterministic unit tests cover calibration progress/reset and initial expression smoothing:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+GitHub Actions runs those tests and compiles the Python modules on every push and pull request. Camera-dependent behavior still requires a webcam: verify calibration completion, expression transitions, the clean capture toggle, Escape shutdown, and behavior when no face is visible.
 
 ## Known limitations
 
