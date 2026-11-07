@@ -2,6 +2,14 @@
 
 A local computer-vision avatar that reacts to facial expressions in real time.
 
+[![Checks](https://github.com/SimpleCaci/Gesture-Reactive-Avatar/actions/workflows/validate.yml/badge.svg)](https://github.com/SimpleCaci/Gesture-Reactive-Avatar/actions/workflows/validate.yml)
+
+[Setup](#setup) · [Controls](#run) · [Validation](#validation-status)
+
+<img src="docs/media/project-visual.png" width="640" alt="Illustration of facial landmarks mapped to cat expressions">
+
+*Project illustration; see the run instructions for the current prototype.*
+
 The project uses a webcam and MediaPipe Face Mesh to classify expressions, smooth rapid changes, and select a matching cat reaction image. It is an early step toward a lightweight, non-pixel avatar for streaming, recording, and playful desktop interaction.
 
 > **Status:** working prototype. The expression pipeline is implemented, but setup, calibration quality, and camera behavior still require validation across different faces, lighting, and devices.
@@ -81,8 +89,6 @@ The avatar window intentionally stays free of debug overlays so it can be captur
 ## Demo
 
 The current reaction-image set is available under `images/`.
-
-<img src="docs/media/project-visual.png" align="right" width="240" alt="Face landmark pipeline controlling a cat avatar">
 
 ## Validation status
 
